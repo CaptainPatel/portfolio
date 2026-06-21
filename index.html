@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Captain Patel — DevOps Engineer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#0d1117;
+  --bg2:#161b22;
+  --bg3:#21262d;
+  --border:#30363d;
+  --green:#39d353;
+  --green-dim:#26a641;
+  --green-dark:#0e4429;
+  --blue:#58a6ff;
+  --yellow:#e3b341;
+  --red:#f85149;
+  --cyan:#79c0ff;
+  --purple:#bc8cff;
+  --text:#e6edf3;
+  --text2:#8b949e;
+  --text3:#484f58;
+  --prompt-green:#3fb950;
+}
+
+html{scroll-behavior:smooth}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'JetBrains Mono',monospace;
+  font-size:14px;
+  line-height:1.6;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── scanline overlay ── */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background:repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+  pointer-events:none;
+  z-index:999;
+}
+
+/* ── top bar (like a terminal window chrome) ── */
+#topbar{
+  position:fixed;
+  top:0;left:0;right:0;
+  height:38px;
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  padding:0 16px;
+  gap:12px;
+  z-index:100;
+}
+.tb-dots{display:flex;gap:6px}
+.tb-dot{width:12px;height:12px;border-radius:50%}
+.tb-dot.r{background:#ff5f57}
+.tb-dot.y{background:#febc2e}
+.tb-dot.g{background:#28c840}
+#topbar-title{
+  flex:1;
+  text-align:center;
+  font-size:12px;
+  color:var(--text2);
+  letter-spacing:0.05em;
+}
+#topbar-nav{display:flex;gap:20px;font-size:12px}
+#topbar-nav a{
+  color:var(--text2);
+  text-decoration:none;
+  transition:color .2s;
+}
+#topbar-nav a:hover{color:var(--green)}
+#topbar-nav a.active{color:var(--green)}
+
+/* ── layout ── */
+main{
+  max-width:860px;
+  margin:0 auto;
+  padding:80px 24px 80px;
+}
+
+/* ── section spacing ── */
+section{margin-bottom:80px}
+
+/* ── hero / boot sequence ── */
+#hero{
+  min-height:calc(100vh - 80px);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding-top:20px;
+}
+
+.boot-line{
+  display:flex;
+  gap:8px;
+  margin-bottom:4px;
+  opacity:0;
+  animation:fadein .1s forwards;
+}
+.boot-line .prefix{color:var(--text3);min-width:120px;flex-shrink:0}
+.boot-line .ok{color:var(--green);margin-right:8px}
+.boot-line .warn{color:var(--yellow);margin-right:8px}
+.boot-line .info{color:var(--cyan);margin-right:8px}
+.boot-line .val{color:var(--text)}
+
+@keyframes fadein{to{opacity:1}}
+
+.prompt-block{
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+  margin-top:4px;
+}
+.prompt-user{color:var(--prompt-green);white-space:nowrap}
+.prompt-at{color:var(--text2)}
+.prompt-host{color:var(--blue)}
+.prompt-path{color:var(--purple)}
+.prompt-dollar{color:var(--text2)}
+
+.hero-name{
+  font-size:clamp(28px,5vw,52px);
+  font-weight:700;
+  color:var(--green);
+  letter-spacing:-0.02em;
+  line-height:1.1;
+  margin:24px 0 8px;
+}
+.hero-role{
+  font-size:clamp(14px,2.5vw,20px);
+  color:var(--cyan);
+  margin-bottom:4px;
+}
+.hero-sub{
+  font-size:13px;
+  color:var(--text2);
+  margin-bottom:32px;
+}
+
+.cursor{
+  display:inline-block;
+  width:10px;height:18px;
+  background:var(--green);
+  animation:blink 1s step-end infinite;
+  vertical-align:text-bottom;
+  margin-left:2px;
+}
+@keyframes blink{50%{opacity:0}}
+
+.cta-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+.btn{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:8px 16px;
+  border-radius:4px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;
+  cursor:pointer;
+  text-decoration:none;
+  transition:all .15s;
+}
+.btn-primary{
+  background:var(--green-dark);
+  border:1px solid var(--green);
+  color:var(--green);
+}
+.btn-primary:hover{background:var(--green);color:#0d1117}
+.btn-ghost{
+  background:transparent;
+  border:1px solid var(--border);
+  color:var(--text2);
+}
+.btn-ghost:hover{border-color:var(--text2);color:var(--text)}
+
+/* ── section headers ── */
+.sec-header{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:28px;
+  color:var(--text2);
+  font-size:12px;
+  letter-spacing:0.1em;
+}
+.sec-header::before{
+  content:'##';
+  color:var(--green);
+  font-weight:700;
+  font-size:16px;
+}
+.sec-header::after{
+  content:'';
+  flex:1;
+  height:1px;
+  background:var(--border);
+  margin-left:8px;
+}
+.sec-label{
+  color:var(--text);
+  font-size:15px;
+  font-weight:500;
+  letter-spacing:0.05em;
+  text-transform:uppercase;
+}
+
+/* ── terminal panels ── */
+.panel{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  overflow:hidden;
+  margin-bottom:16px;
+}
+.panel-header{
+  background:var(--bg3);
+  border-bottom:1px solid var(--border);
+  padding:8px 16px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:12px;
+  color:var(--text2);
+}
+.panel-header .ph-dots{display:flex;gap:5px}
+.panel-header .ph-dot{width:10px;height:10px;border-radius:50%;background:var(--border)}
+.panel-header .file{color:var(--text2)}
+.panel-header .file span{color:var(--blue)}
+.panel-body{padding:20px}
+
+/* ── about / cat output ── */
+.cat-line{
+  display:flex;
+  gap:16px;
+  margin-bottom:6px;
+  font-size:13px;
+}
+.cat-key{color:var(--cyan);min-width:160px;flex-shrink:0}
+.cat-val{color:var(--text)}
+.cat-val .tag{
+  display:inline-block;
+  background:var(--green-dark);
+  border:1px solid var(--green-dim);
+  color:var(--green);
+  font-size:11px;
+  padding:1px 7px;
+  border-radius:3px;
+  margin:1px 3px 1px 0;
+}
+.cat-val .tag.blue{background:#0c2d6b;border-color:#1f4fae;color:var(--blue)}
+.cat-val .tag.yellow{background:#2d1f02;border-color:#6e4b07;color:var(--yellow)}
+.cat-val .tag.purple{background:#1e0f3d;border-color:#6e40c9;color:var(--purple)}
+.cat-val .tag.red{background:#2d0a0a;border-color:#6e1313;color:var(--red)}
+.cat-val .cert{
+  color:var(--yellow);
+  font-weight:500;
+}
+
+/* ── experience / git log style ── */
+.commit{
+  display:flex;
+  gap:0;
+  position:relative;
+  margin-bottom:0;
+}
+.commit-line{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  margin-right:16px;
+  flex-shrink:0;
+}
+.commit-dot{
+  width:14px;height:14px;
+  border-radius:50%;
+  background:var(--green);
+  border:2px solid var(--bg2);
+  outline:2px solid var(--green-dim);
+  flex-shrink:0;
+  margin-top:3px;
+  z-index:1;
+}
+.commit-dot.dim{background:var(--blue);outline-color:var(--blue)}
+.commit-vline{
+  width:2px;
+  flex:1;
+  background:var(--border);
+  min-height:20px;
+}
+.commit-content{
+  flex:1;
+  padding-bottom:28px;
+}
+.commit-meta{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:6px;
+  flex-wrap:wrap;
+}
+.commit-hash{color:var(--yellow);font-size:11px}
+.commit-date{color:var(--text3);font-size:11px}
+.commit-company{
+  color:var(--blue);
+  font-size:13px;
+  font-weight:500;
+}
+.commit-title{
+  font-size:15px;
+  font-weight:500;
+  color:var(--text);
+  margin-bottom:10px;
+}
+.commit-body{
+  color:var(--text2);
+  font-size:12px;
+  line-height:1.7;
+}
+.commit-body li{
+  list-style:none;
+  padding-left:0;
+  margin-bottom:4px;
+}
+.commit-body li::before{content:'+ ';color:var(--green)}
+.commit-body li.dim::before{color:var(--blue)}
+
+/* ── skills / htop style ── */
+.htop-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+@media(max-width:600px){.htop-grid{grid-template-columns:1fr}}
+
+.skill-row{margin-bottom:10px}
+.skill-label{
+  display:flex;
+  justify-content:space-between;
+  font-size:12px;
+  margin-bottom:3px;
+}
+.skill-name{color:var(--cyan)}
+.skill-pct{color:var(--text2)}
+.skill-bar{
+  height:8px;
+  background:var(--bg3);
+  border-radius:2px;
+  overflow:hidden;
+  border:1px solid var(--border);
+}
+.skill-fill{
+  height:100%;
+  border-radius:2px;
+  transition:width 1s ease;
+  width:0;
+}
+.skill-fill.green{background:var(--green)}
+.skill-fill.blue{background:var(--blue)}
+.skill-fill.yellow{background:var(--yellow)}
+.skill-fill.purple{background:var(--purple)}
+.skill-fill.cyan{background:var(--cyan)}
+
+/* ── projects / ls -la style ── */
+.ls-header{
+  display:grid;
+  grid-template-columns:80px 60px 1fr 100px;
+  gap:8px;
+  padding:6px 0;
+  border-bottom:1px solid var(--border);
+  font-size:11px;
+  color:var(--text3);
+  margin-bottom:4px;
+}
+.ls-row{
+  display:grid;
+  grid-template-columns:80px 60px 1fr 100px;
+  gap:8px;
+  padding:8px 0;
+  border-bottom:1px solid var(--bg3);
+  font-size:12px;
+  cursor:pointer;
+  transition:background .1s;
+  border-radius:3px;
+}
+.ls-row:hover{background:var(--bg3)}
+.ls-perms{color:var(--green-dim)}
+.ls-size{color:var(--yellow)}
+.ls-name{color:var(--blue);font-weight:500}
+.ls-desc{color:var(--text2);font-size:11px;margin-top:3px}
+.ls-date{color:var(--text3);font-size:11px}
+
+.project-detail{
+  display:none;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:14px 16px;
+  margin:4px 0 8px;
+  font-size:12px;
+  color:var(--text2);
+}
+.project-detail.open{display:block}
+.project-detail .pd-stack{
+  color:var(--purple);
+  margin-bottom:8px;
+  font-size:11px;
+}
+.project-detail li{
+  list-style:none;
+  margin-bottom:4px;
+}
+.project-detail li::before{content:'→ ';color:var(--cyan)}
+.pd-links{margin-top:10px;display:flex;gap:12px}
+.pd-links a{color:var(--blue);text-decoration:none;font-size:11px}
+.pd-links a:hover{text-decoration:underline}
+
+/* ── certifications ── */
+.cert-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+@media(max-width:580px){.cert-grid{grid-template-columns:1fr}}
+
+.cert-card{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:16px;
+  position:relative;
+  overflow:hidden;
+}
+.cert-card::before{
+  content:'';
+  position:absolute;
+  left:0;top:0;bottom:0;
+  width:3px;
+  background:var(--yellow);
+}
+.cert-card.green-accent::before{background:var(--green)}
+.cert-issuer{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px}
+.cert-name{font-size:13px;font-weight:500;color:var(--yellow);margin-bottom:4px}
+.cert-card.green-accent .cert-name{color:var(--green)}
+.cert-id{font-size:10px;color:var(--text3)}
+.cert-badge{
+  position:absolute;
+  top:12px;right:12px;
+  background:var(--green-dark);
+  border:1px solid var(--green-dim);
+  color:var(--green);
+  font-size:10px;
+  padding:2px 7px;
+  border-radius:3px;
+}
+
+/* ── contact / ssh style ── */
+.ssh-block{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:20px;
+  font-size:13px;
+}
+.ssh-comment{color:var(--text3);margin-bottom:4px}
+.ssh-cmd{color:var(--text);margin-bottom:16px}
+.ssh-cmd span{color:var(--cyan)}
+.ssh-links{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.ssh-link{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color:var(--text2);
+  text-decoration:none;
+  font-size:12px;
+  padding:6px 10px;
+  border-radius:3px;
+  border:1px solid transparent;
+  transition:all .15s;
+}
+.ssh-link:hover{
+  border-color:var(--border);
+  background:var(--bg2);
+  color:var(--text);
+}
+.ssh-link .lk{color:var(--blue);min-width:120px}
+.ssh-link .lv{color:var(--text)}
+
+/* ── uptime ticker ── */
+#uptime-ticker{
+  font-size:11px;
+  color:var(--text3);
+  text-align:right;
+  margin-top:-8px;
+  margin-bottom:32px;
+}
+#uptime-ticker span{color:var(--green)}
+
+/* ── footer ── */
+footer{
+  border-top:1px solid var(--border);
+  padding-top:20px;
+  text-align:center;
+  font-size:11px;
+  color:var(--text3);
+}
+footer span{color:var(--green)}
+
+/* ── scroll fade-in ── */
+.reveal{
+  opacity:0;
+  transform:translateY(16px);
+  transition:opacity .5s ease, transform .5s ease;
+}
+.reveal.visible{opacity:1;transform:none}
+
+/* ── mobile ── */
+@media(max-width:680px){
+  main{padding:70px 16px 60px}
+  #topbar-nav{gap:12px}
+  .ls-header,.ls-row{grid-template-columns:70px 1fr 80px}
+  .ls-header>:nth-child(2),.ls-row>:nth-child(2){display:none}
+  .cat-line{flex-direction:column;gap:2px}
+  .cat-key{min-width:unset}
+}
+</style>
+</head>
+<body>
+
+<!-- top window chrome -->
+<div id="topbar">
+  <div class="tb-dots">
+    <div class="tb-dot r"></div>
+    <div class="tb-dot y"></div>
+    <div class="tb-dot g"></div>
+  </div>
+  <div id="topbar-title">captain@devops-pod:~</div>
+  <nav id="topbar-nav">
+    <a href="#about" class="active">about</a>
+    <a href="#experience">log</a>
+    <a href="#skills">htop</a>
+    <a href="#projects">ls</a>
+    <a href="#contact">ssh</a>
+  </nav>
+</div>
+
+<main>
+
+  <!-- ── HERO ── -->
+  <section id="hero">
+    <div id="boot-output">
+      <div class="boot-line" style="animation-delay:.1s"><span class="prefix">[    0.000000]</span><span class="ok">OK </span><span class="val">Linux version 6.x.0 (captain@devops-pod)</span></div>
+      <div class="boot-line" style="animation-delay:.3s"><span class="prefix">[    0.142873]</span><span class="ok">OK </span><span class="val">Mounting /proc filesystem</span></div>
+      <div class="boot-line" style="animation-delay:.5s"><span class="prefix">[    0.288441]</span><span class="ok">OK </span><span class="val">Loading AWS credentials — region: ap-south-1</span></div>
+      <div class="boot-line" style="animation-delay:.7s"><span class="prefix">[    0.401209]</span><span class="ok">OK </span><span class="val">Ansible inventory parsed — 127 hosts ready</span></div>
+      <div class="boot-line" style="animation-delay:.9s"><span class="prefix">[    0.512034]</span><span class="ok">OK </span><span class="val">kubectl context: accenture-eks-prod</span></div>
+      <div class="boot-line" style="animation-delay:1.1s"><span class="prefix">[    0.623910]</span><span class="ok">OK </span><span class="val">Prometheus scrape interval: 15s — targets: 84 active</span></div>
+      <div class="boot-line" style="animation-delay:1.3s"><span class="prefix">[    0.744821]</span><span class="warn">WARN</span><span class="val">ServiceNow incident queue: 0 open (all resolved ✓)</span></div>
+      <div class="boot-line" style="animation-delay:1.5s"><span class="prefix">[    0.812349]</span><span class="ok">OK </span><span class="val">GitHub Actions pipeline: green</span></div>
+      <div class="boot-line" style="animation-delay:1.7s"><span class="prefix">[    0.901823]</span><span class="info">INFO</span><span class="val">System uptime: 99.8% — SLA: compliant</span></div>
+      <div class="boot-line" style="animation-delay:2.0s"><span class="prefix">[    1.000000]</span><span class="ok">OK </span><span class="val">Engineer online. All systems nominal.</span></div>
+    </div>
+
+    <div class="prompt-block" style="margin-top:24px;opacity:0;animation:fadein .3s 2.3s forwards">
+      <span class="prompt-user">captain</span><span class="prompt-at">@</span><span class="prompt-host">devops-pod</span><span class="prompt-at">:</span><span class="prompt-path">~</span><span class="prompt-dollar"> $</span>&nbsp;<span style="color:var(--text2)">whoami</span>
+    </div>
+
+    <div class="hero-name" style="opacity:0;animation:fadein .4s 2.6s forwards">
+      Captain Patel<span class="cursor"></span>
+    </div>
+    <div class="hero-role" style="opacity:0;animation:fadein .4s 2.8s forwards">
+      DevOps Engineer · Cloud Architect · SRE
+    </div>
+    <div class="hero-sub" style="opacity:0;animation:fadein .4s 3.0s forwards">
+      Accenture · Indore, India · AWS SAA-C03 Certified
+    </div>
+
+    <div id="uptime-ticker" style="opacity:0;animation:fadein .4s 3.2s forwards">
+      system uptime: <span id="uptime-val">calculating...</span> &nbsp;|&nbsp; MTTR reduced by <span>65%</span> &nbsp;|&nbsp; incidents resolved: <span>500+</span>
+    </div>
+
+    <div class="cta-row" style="opacity:0;animation:fadein .4s 3.3s forwards">
+      <a href="#projects" class="btn btn-primary">$ ls ./projects</a>
+      <a href="#contact" class="btn btn-ghost">$ ssh captain@patel.dev</a>
+      <a href="https://github.com/CaptainPatel" target="_blank" class="btn btn-ghost">$ git remote -v</a>
+    </div>
+  </section>
+
+  <!-- ── ABOUT ── -->
+  <section id="about" class="reveal">
+    <div class="sec-header"><span class="sec-label">cat about.yaml</span></div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="ph-dots"><div class="ph-dot"></div><div class="ph-dot"></div><div class="ph-dot"></div></div>
+        <div class="file">about.<span>yaml</span></div>
+      </div>
+      <div class="panel-body">
+        <div class="cat-line"><span class="cat-key">name:</span><span class="cat-val">Captain Patel</span></div>
+        <div class="cat-line"><span class="cat-key">role:</span><span class="cat-val">DevOps Engineer / SRE</span></div>
+        <div class="cat-line"><span class="cat-key">employer:</span><span class="cat-val">Accenture</span></div>
+        <div class="cat-line"><span class="cat-key">location:</span><span class="cat-val">Indore, Madhya Pradesh, India</span></div>
+        <div class="cat-line"><span class="cat-key">experience:</span><span class="cat-val">2 years production infrastructure</span></div>
+        <div class="cat-line"><span class="cat-key">currently:</span><span class="cat-val">Prepping for CKA · Deepening Terraform + Helm</span></div>
+        <div class="cat-line" style="margin-top:12px"><span class="cat-key">certifications:</span><span class="cat-val"><span class="cert">AWS SAA-C03</span> &nbsp; <span class="cert">AWS CLF-C02</span></span></div>
+        <div class="cat-line" style="margin-top:12px"><span class="cat-key">cloud:</span><span class="cat-val">
+          <span class="tag blue">EC2</span><span class="tag blue">EKS</span><span class="tag blue">RDS</span><span class="tag blue">S3</span><span class="tag blue">Lambda</span><span class="tag blue">VPC</span><span class="tag blue">IAM</span>
+        </span></div>
+        <div class="cat-line"><span class="cat-key">iac:</span><span class="cat-val">
+          <span class="tag">Terraform</span><span class="tag">Ansible</span><span class="tag">CloudFormation</span>
+        </span></div>
+        <div class="cat-line"><span class="cat-key">containers:</span><span class="cat-val">
+          <span class="tag">Docker</span><span class="tag">Kubernetes</span><span class="tag">EKS</span><span class="tag">Helm</span>
+        </span></div>
+        <div class="cat-line"><span class="cat-key">cicd:</span><span class="cat-val">
+          <span class="tag">GitHub Actions</span><span class="tag">Jenkins</span><span class="tag">GitLab CI</span>
+        </span></div>
+        <div class="cat-line"><span class="cat-key">observability:</span><span class="cat-val">
+          <span class="tag purple">Prometheus</span><span class="tag purple">Grafana</span><span class="tag purple">Loki</span><span class="tag purple">CloudWatch</span>
+        </span></div>
+        <div class="cat-line"><span class="cat-key">scripting:</span><span class="cat-val">
+          <span class="tag yellow">Python</span><span class="tag yellow">Bash</span><span class="tag yellow">C++</span>
+        </span></div>
+        <div class="cat-line"><span class="cat-key">os:</span><span class="cat-val">
+          <span class="tag red">RHEL 7/8/9</span><span class="tag red">SUSE Linux</span><span class="tag red">Ubuntu</span>
+        </span></div>
+        <div class="cat-line" style="margin-top:12px"><span class="cat-key">dsa:</span><span class="cat-val">300+ problems solved — LeetCode / GFG (C++, Python)</span></div>
+        <div class="cat-line"><span class="cat-key">fun_fact:</span><span class="cat-val">Resolved a P1 faster than the ticket was raised</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── EXPERIENCE ── -->
+  <section id="experience" class="reveal">
+    <div class="sec-header"><span class="sec-label">git log --oneline --graph</span></div>
+
+    <div class="commit">
+      <div class="commit-line">
+        <div class="commit-dot"></div>
+        <div class="commit-vline"></div>
+      </div>
+      <div class="commit-content">
+        <div class="commit-meta">
+          <span class="commit-hash">a3f9c12</span>
+          <span class="commit-date">Sep 2024 → Present</span>
+          <span class="commit-company">Accenture</span>
+        </div>
+        <div class="commit-title">DevOps Engineer — Cloud Infrastructure & Automation</div>
+        <ul class="commit-body">
+          <li>Resolved 500+ critical P1/P2 ServiceNow incidents on RHEL 7/8/9 and SUSE; automated recovery playbooks cut MTTR by 65%, achieving 99.8% uptime SLA</li>
+          <li>Provisioned AWS EC2 and EKS clusters via Terraform and Ansible IaC — deployment time from 3 days to under 2 hours</li>
+          <li>Automated OS patching, LVM/FS management, SSSD/Kerberos auth with Python + Bash + Ansible roles, saving 180+ engineer-hours/month</li>
+          <li>Containerized 5 legacy apps with Docker, deployed on AWS EKS with Kubernetes — 28% infrastructure cost reduction</li>
+          <li>Built CI/CD pipelines in GitHub Actions + Jenkins; zero-downtime deployments across multiple production environments</li>
+          <li>Deployed Prometheus + Grafana observability stack with custom dashboards and proactive alerting rules</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="commit">
+      <div class="commit-line">
+        <div class="commit-dot dim"></div>
+        <div class="commit-vline"></div>
+      </div>
+      <div class="commit-content">
+        <div class="commit-meta">
+          <span class="commit-hash">b72e041</span>
+          <span class="commit-date">Jun 2023 → Aug 2023</span>
+          <span class="commit-company">ThinkNext Technologies</span>
+        </div>
+        <div class="commit-title">Full Stack Developer Intern</div>
+        <ul class="commit-body">
+          <li class="dim">Built production MERN apps with React, Node.js, Express, MongoDB — JWT auth + RBAC, 500+ concurrent users</li>
+          <li class="dim">Optimized REST APIs and MongoDB queries — 40% improvement in response times</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="commit">
+      <div class="commit-line">
+        <div class="commit-dot dim"></div>
+      </div>
+      <div class="commit-content">
+        <div class="commit-meta">
+          <span class="commit-hash">c91d830</span>
+          <span class="commit-date">Sep 2021 → Jun 2024</span>
+          <span class="commit-company">Chandigarh Group of Colleges</span>
+        </div>
+        <div class="commit-title">Bachelor of Computer Applications — CGPA 8.64/10</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SKILLS ── -->
+  <section id="skills" class="reveal">
+    <div class="sec-header"><span class="sec-label">htop — resource usage</span></div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="ph-dots"><div class="ph-dot"></div><div class="ph-dot"></div><div class="ph-dot"></div></div>
+        <div class="file">process: <span>skill-monitor</span> &nbsp;|&nbsp; user: <span>captain</span></div>
+      </div>
+      <div class="panel-body">
+        <div class="htop-grid">
+          <div>
+            <div class="skill-row"><div class="skill-label"><span class="skill-name">Linux / RHEL</span><span class="skill-pct">95%</span></div><div class="skill-bar"><div class="skill-fill green" data-pct="95"></div></div></div>
+            <div class="skill-row"><div class="skill-label"><span class="skill-name">Ansible</span><span class="skill-pct">88%</span></div><div class="skill-bar"><div class="skill-fill green" data-pct="88"></div></div></div>
+            <div class="skill-row"><div class="skill-label"><span class="skill-name">Terraform</span><span class="skill-pct">82%</span></div><div class="skill-bar"><div class="skill-fill green" data-pct="82"></div></div></div>
+            <div class="skill-row"><div class="skill-label"><span class="skill-name">Docker</span><span class="skill-pct">85%</span></div><div class="skill-bar"><div class="skill-fill blue" data-pct="85"></div></div></div>
+            <div class="skill-row"><div class="skill-label"><span class="skill-name">Kubernetes / EKS</span><span class="skill-pct">75%</span></div><div class="skill-bar"><div class="skill-fill blue" data-pct="75"></div></div></div>
+          </div>
+          <div>
+            <div class="skill-row"><div class="skill-label"><span class="skill-name">AWS (EC2/EKS/S3…)</span><span class="skill-pct">85%</span></div><div class="skill-bar"><div class="skill-fill yellow" data-pct="85"></div></div></div>
+            <div class="skill-row"><div class="skill-label"><span class="skill-name">GitHub Actions / CI</span><span class="skill-pct">80%</span></div><div class="skill-bar"><div class="skill-fill yellow" data-pct="80"></div></div></div>
+            <div class="skill-row"><div class="skill-label"><span class="skill-name">Prometheus / Grafana</span><span class="skill-pct">78%</span></div><div class="skill-bar"><div class="skill-fill purple" data-pct="78"></div></div></div>
+            <div class="skill-row"><div class="skill-label"><span class="skill-name">Python / Bash</span><span class="skill-pct">83%</span></div><div class="skill-bar"><div class="skill-fill cyan" data-pct="83"></div></div></div>
+            <div class="skill-row"><div class="skill-label"><span class="skill-name">Kerberos / SSSD / SSH</span><span class="skill-pct">80%</span></div><div class="skill-bar"><div class="skill-fill cyan" data-pct="80"></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PROJECTS ── -->
+  <section id="projects" class="reveal">
+    <div class="sec-header"><span class="sec-label">ls -la ./projects</span></div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="ph-dots"><div class="ph-dot"></div><div class="ph-dot"></div><div class="ph-dot"></div></div>
+        <div class="file">directory: <span>~/projects</span></div>
+      </div>
+      <div class="panel-body" style="padding:16px">
+        <div class="ls-header">
+          <span>permissions</span>
+          <span>size</span>
+          <span>name / description</span>
+          <span>modified</span>
+        </div>
+
+        <!-- project 1 -->
+        <div class="ls-row" onclick="toggleProject('p1')">
+          <span class="ls-perms">drwxr-xr-x</span>
+          <span class="ls-size">4.2K</span>
+          <div>
+            <div class="ls-name">cicd-eks-platform/</div>
+            <div class="ls-desc">Cloud-native K8s platform on AWS EKS with full CI/CD</div>
+          </div>
+          <span class="ls-date">Jun 2025</span>
+        </div>
+        <div class="project-detail" id="p1">
+          <div class="pd-stack">stack: Terraform · AWS EKS · GitHub Actions · Helm · Prometheus · Grafana</div>
+          <ul>
+            <li>Provisioned production-grade Kubernetes on AWS EKS using Terraform IaC from scratch</li>
+            <li>Fully automated CI/CD via GitHub Actions with Helm-based application deployments</li>
+            <li>Integrated Prometheus + Grafana for end-to-end observability with custom alert rules</li>
+            <li>Zero-downtime rolling deployments with readiness/liveness probes configured</li>
+          </ul>
+          <div class="pd-links">
+            <a href="https://github.com/CaptainPatel" target="_blank">→ github</a>
+          </div>
+        </div>
+
+        <!-- project 2 -->
+        <div class="ls-row" onclick="toggleProject('p2')">
+          <span class="ls-perms">drwxr-xr-x</span>
+          <span class="ls-size">2.1K</span>
+          <div>
+            <div class="ls-name">linux-automation-toolkit/</div>
+            <div class="ls-desc">20+ Ansible roles for Linux infra automation</div>
+          </div>
+          <span class="ls-date">Mar 2025</span>
+        </div>
+        <div class="project-detail" id="p2">
+          <div class="pd-stack">stack: Ansible · Python · Bash · AWS EC2 · RHEL</div>
+          <ul>
+            <li>Library of 20+ reusable Ansible roles: OS patching, LVM, SSSD/Kerberos, log aggregation</li>
+            <li>Reduced manual configuration time by 80% in AWS EC2 lab environments</li>
+            <li>Idempotent roles tested against RHEL 7/8/9 and SUSE Linux targets</li>
+            <li>Python scripts for pre/post-check validation and rollback automation</li>
+          </ul>
+          <div class="pd-links">
+            <a href="https://github.com/CaptainPatel" target="_blank">→ github</a>
+          </div>
+        </div>
+
+        <!-- project 3 -->
+        <div class="ls-row" onclick="toggleProject('p3')">
+          <span class="ls-perms">-rwxr-xr-x</span>
+          <span class="ls-size">890B</span>
+          <div>
+            <div class="ls-name">incident-triage-bot.py</div>
+            <div class="ls-desc">AI-powered ServiceNow incident classifier + Slack router</div>
+          </div>
+          <span class="ls-date">Jan 2025</span>
+        </div>
+        <div class="project-detail" id="p3">
+          <div class="pd-stack">stack: Python · OpenAI API · FastAPI · ServiceNow · Slack Webhooks · AWS Lambda</div>
+          <ul>
+            <li>Parses ServiceNow ticket descriptions with OpenAI API to classify severity automatically</li>
+            <li>Routes structured alerts to correct Slack channels based on team and priority</li>
+            <li>Deployed as a FastAPI microservice on AWS Lambda — serverless, zero infrastructure overhead</li>
+            <li>Reduced incident triage time by ~50% in testing</li>
+          </ul>
+          <div class="pd-links">
+            <a href="https://github.com/CaptainPatel" target="_blank">→ github</a>
+          </div>
+        </div>
+
+        <!-- project 4 -->
+        <div class="ls-row" onclick="toggleProject('p4')">
+          <span class="ls-perms">drwxr-xr-x</span>
+          <span class="ls-size">1.7K</span>
+          <div>
+            <div class="ls-name">devops-dashboard/</div>
+            <div class="ls-desc">Full-stack metrics dashboard — MERN + Docker + EC2</div>
+          </div>
+          <span class="ls-date">Nov 2024</span>
+        </div>
+        <div class="project-detail" id="p4">
+          <div class="pd-stack">stack: React · Node.js · MongoDB · Docker Compose · AWS EC2 · JWT</div>
+          <ul>
+            <li>Full-stack DevOps KPI dashboard — live infrastructure metrics via REST APIs</li>
+            <li>Containerized with Docker Compose, deployed on AWS EC2</li>
+            <li>JWT-secured endpoints with role-based access control</li>
+            <li>GitHub Actions pipeline for automated build and deployment</li>
+          </ul>
+          <div class="pd-links">
+            <a href="https://github.com/CaptainPatel" target="_blank">→ github</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);padding:4px 0 0 4px">
+      4 directories — click any row to expand &nbsp;▸
+    </div>
+  </section>
+
+  <!-- ── CERTIFICATIONS ── -->
+  <section id="certs" class="reveal">
+    <div class="sec-header"><span class="sec-label">cat /etc/certifications</span></div>
+    <div class="cert-grid">
+      <div class="cert-card">
+        <div class="cert-issuer">Amazon Web Services</div>
+        <div class="cert-name">Solutions Architect – Associate</div>
+        <div class="cert-id">SAA-C03 · Verified</div>
+        <div class="cert-badge">ACTIVE</div>
+      </div>
+      <div class="cert-card green-accent">
+        <div class="cert-issuer">Amazon Web Services</div>
+        <div class="cert-name" style="color:var(--green)">Cloud Practitioner</div>
+        <div class="cert-id">CLF-C02 · Verified</div>
+        <div class="cert-badge">ACTIVE</div>
+      </div>
+      <div class="cert-card" style="border-style:dashed;opacity:.6">
+        <div class="cert-issuer">Linux Foundation · CNCF</div>
+        <div class="cert-name">Certified Kubernetes Administrator</div>
+        <div class="cert-id">CKA · In progress</div>
+        <div class="cert-badge" style="background:var(--bg3);border-color:var(--text3);color:var(--text3)">UPCOMING</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CONTACT ── -->
+  <section id="contact" class="reveal">
+    <div class="sec-header"><span class="sec-label">ssh captain@patel.dev</span></div>
+    <div class="ssh-block">
+      <div class="ssh-comment"># establish connection — pick your protocol</div>
+      <div class="ssh-cmd">$ ssh -i ~/.ssh/recruiter_key <span>captain@patel.dev</span></div>
+      <div class="ssh-links">
+        <a class="ssh-link" href="mailto:captain.patel.codes@gmail.com">
+          <span class="lk">email://</span>
+          <span class="lv">captain.patel.codes@gmail.com</span>
+        </a>
+        <a class="ssh-link" href="https://linkedin.com/in/captainpatel" target="_blank">
+          <span class="lk">linkedin://</span>
+          <span class="lv">linkedin.com/in/captainpatel</span>
+        </a>
+        <a class="ssh-link" href="https://github.com/CaptainPatel" target="_blank">
+          <span class="lk">github://</span>
+          <span class="lv">github.com/CaptainPatel</span>
+        </a>
+        <a class="ssh-link" href="tel:+917470578530">
+          <span class="lk">tel://</span>
+          <span class="lv">+91 74705 78530</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    built by <span>captain@devops-pod</span> · crafted in vim · deployed via GitHub Actions · <span>© 2026</span>
+  </footer>
+
+</main>
+
+<script>
+// ── uptime counter ──
+(function(){
+  const start = new Date('2024-09-01T09:00:00');
+  function fmt(){
+    const d = Math.floor((Date.now()-start)/86400000);
+    const h = Math.floor(((Date.now()-start)%86400000)/3600000);
+    const m = Math.floor(((Date.now()-start)%3600000)/60000);
+    document.getElementById('uptime-val').textContent =
+      d+'d '+h+'h '+m+'m';
+  }
+  fmt();setInterval(fmt,30000);
+})();
+
+// ── skill bar animation on scroll ──
+function animateBars(){
+  document.querySelectorAll('.skill-fill').forEach(el=>{
+    const pct = el.dataset.pct;
+    el.style.width = pct+'%';
+  });
+}
+
+// ── scroll reveal ──
+const observer = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.classList.add('visible');
+      if(e.target.id==='skills') setTimeout(animateBars,200);
+    }
+  });
+},{threshold:0.1});
+document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+
+// ── project expand/collapse ──
+function toggleProject(id){
+  const el = document.getElementById(id);
+  el.classList.toggle('open');
+}
+
+// ── nav active state on scroll ──
+const sections = ['about','experience','skills','projects','contact'];
+const navLinks = {};
+sections.forEach(s=>{navLinks[s]=document.querySelector('#topbar-nav a[href="#'+s+'"]')});
+
+const navObserver = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      Object.values(navLinks).forEach(a=>{if(a)a.classList.remove('active')});
+      if(navLinks[e.target.id]) navLinks[e.target.id].classList.add('active');
+    }
+  });
+},{threshold:0.4});
+sections.forEach(s=>{
+  const el = document.getElementById(s);
+  if(el) navObserver.observe(el);
+});
+</script>
+</body>
+</html>
